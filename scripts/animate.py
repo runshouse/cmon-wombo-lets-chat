@@ -32,7 +32,10 @@ def main(args):
     func_args = dict(func_args)
     
     time_str = datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
-    savedir = f"samples/{Path(args.config).stem}-{time_str}"
+        if args.cloudsave:
+        savedir = f"/content/drive/MyDrive/AnimateDiff/outputs/{Path(args.config).stem}-{time_str}"
+    else:
+        savedir = f"samples/{Path(args.config).stem}-{time_str}"
     os.makedirs(savedir)
     inference_config = OmegaConf.load(args.inference_config)
 
@@ -141,7 +144,7 @@ def main(args):
 
     samples = torch.concat(samples)
     save_videos_grid(samples, f"{savedir}/sample.gif", n_rows=4)
-
+    save_videos_grid(samples, f"/content/latest.gif", n_rows=4)
     OmegaConf.save(config, f"{savedir}/config.yaml")
 
 
