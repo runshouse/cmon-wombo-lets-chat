@@ -32,7 +32,7 @@ def main(args):
     func_args = dict(func_args)
     
     time_str = datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
-        if args.cloudsave:
+    if args.cloudsave:
         savedir = f"/content/drive/MyDrive/AnimateDiff/outputs/{Path(args.config).stem}-{time_str}"
     else:
         savedir = f"samples/{Path(args.config).stem}-{time_str}"
@@ -153,6 +153,7 @@ if __name__ == "__main__":
     parser.add_argument("--pretrained_model_path", type=str, default="models/StableDiffusion/stable-diffusion-v1-5",)
     parser.add_argument("--inference_config",      type=str, default="configs/inference/inference.yaml")    
     parser.add_argument("--config",                type=str, required=True)
+    parser.add_argument("--cloudsave", type=bool, default=False)
     
     parser.add_argument("--L", type=int, default=16 )
     parser.add_argument("--W", type=int, default=512)
