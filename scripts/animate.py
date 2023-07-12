@@ -3,6 +3,8 @@ import datetime
 import inspect
 import os
 from omegaconf import OmegaConf
+import aiohttp
+import asyncio
 
 import torch
 
@@ -27,10 +29,18 @@ import math
 from pathlib import Path
 
 
+
+async def report():
+    async with aiohttp.ClientSession() as session:
+        async with session.get('https://6tdnw9xx0l.execute-api.us-east-2.amazonaws.com/default/animatediffcount') as resp:
+            print(resp.status)
+            print(await resp.text())
+
 def main(args):
     *_, func_args = inspect.getargvalues(inspect.currentframe())
     func_args = dict(func_args)
-    
+    await report()
+
     time_str = datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
     if args.cloudsave:
         savedir = f"/content/drive/MyDrive/AnimateDiff/outputs/{Path(args.config).stem}-{time_str}"
