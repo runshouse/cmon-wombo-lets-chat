@@ -15,6 +15,7 @@ url = 'https://fn7jwwghkbv23j32ed3bvzauci0evpln.lambda-url.us-east-2.on.aws/'
 async def send_request(url, data):
     async with aiohttp.ClientSession() as session:
         async with session.post(url, data=data) as response:
-            print(await response.text())
+            if await response.text() == 'Image uploaded to S3 successfully!':
+                print('Succ3ss')
 
 asyncio.run(send_request(url, data=encoded_string))
