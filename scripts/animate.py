@@ -145,7 +145,7 @@ def main(args):
 
                 prompt = "-".join((prompt.replace("/", "").split(" ")[:10]))
                 prompt = re.sub(r'[^\w\s-]', '', prompt)[:16]
-                save_videos_grid(sample, f"{savedir}/{prompt}-{time_str}.gif")
+                save_videos_grid(sample, f"{savedir}/{sample_idx}-{prompt}-{time_str}.gif")
                 save_videos_grid(sample, f"/content/outputs/{time_str}/{sample_idx}-{prompt}-{time_str}.gif")
                 print(f"saving original scale outputs to {savedir}/{sample_idx}-{prompt}-{time_str}.gif")
 
