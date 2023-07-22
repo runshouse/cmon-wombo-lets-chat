@@ -1,15 +1,17 @@
 import numpy as np
 
-
 def ordered_halving(i):
     return int('{:064b}'.format(i)[::-1], 2) / (1 << 64)
-
 
 def uniform(step, steps, n, context_size, strides, overlap, closed_loop=True):
     if n <= context_size:
         yield list(range(n))
         return
+
+    # Increased overlap for greater temporal consistency.
+    overlap = max(overlap, context_size // 2)  # At least half the context size
     strides = min(strides, int(np.ceil(np.log2(n / context_size))) + 1)
+
     for stride in 1 << np.arange(strides):
         pad = int(round(n * ordered_halving(step)))
         for j in range(
