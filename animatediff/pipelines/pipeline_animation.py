@@ -347,7 +347,8 @@ class AnimationPipeline(DiffusionPipeline):
 
     def prepare_latents(self, init_image, batch_size, num_channels_latents, video_length, height, width, dtype, device,
                         generator, latents=None):
-        # init_latents = None
+        if init_image is None:
+            init_latents = None
         shape = (
         batch_size, num_channels_latents, video_length, height // self.vae_scale_factor, width // self.vae_scale_factor)
         print("inside prepare latents block")
