@@ -402,17 +402,22 @@ class AnimationPipeline(DiffusionPipeline):
                 latents = torch.randn(shape, generator=generator, device=rand_device, dtype=dtype).to(device)
                 if init_latents is not None:
                     print("We doing this...")
+                    influence = 68
                     for i in range(video_length):
                         print("Doing the loop")
                         # I just feel dividing by 30 yield stable result but I don't know why
                         # gradully reduce init alpha along video frames (loosen restriction)
                         try:
-                            init_alpha = (video_length - float(i)) / video_length / 26
+                            init_alpha = (video_length - float(i)) / video_length / influence
                             init_latents = init_latents.to(device)
                             latents = latents.to(device)
                             print("init_alpha established")
-                            latents[:, :, i, :, :] = init_latents * init_alpha + latents[:, :, i, :, :] * (
-                                        1 - init_alpha)
+                            latents[:, :, i, :, :] = init_latents * (.00789) + latents[:, :, i, :, :] * (
+                                        1 - (.00789))
+                            influence -= 4
+                            print(str(init_alpha))
+                            if influence <= 10:
+                                influence = 10
                         except Exception as e:
                             print(f"Error: {e}")
                             print(f"Image shape: {image.shape}")
