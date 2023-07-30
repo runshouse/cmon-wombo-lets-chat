@@ -5,7 +5,7 @@ import os
 from omegaconf import OmegaConf
 
 import torch
-
+import shutil
 import diffusers
 from diffusers import AutoencoderKL, DDIMScheduler
 
@@ -123,6 +123,7 @@ def main(args):
             prompts = model_config.prompt
             n_prompts = list(model_config.n_prompt) * len(prompts) if len(
                 model_config.n_prompt) == 1 else model_config.n_prompt
+            init_image = model_config.init_image if hasattr(model_config, 'init_image') else None
 
             random_seeds = model_config.get("seed", [-1])
             random_seeds = [random_seeds] if isinstance(random_seeds, int) else list(random_seeds)
@@ -142,16 +143,17 @@ def main(args):
                 print(f"sampling {prompt} ...")
                 sample = pipeline(
                     prompt,
-                    negative_prompt     = n_prompt,
-                    num_inference_steps = model_config.steps,
-                    guidance_scale      = model_config.guidance_scale,
-                    width               = args.W,
-                    height              = args.H,
-                    video_length        = args.L,
-                    temporal_context    = args.context_length,
-                    strides             = args.context_stride + 1,
-                    overlap             = args.context_overlap,
-                    fp16                = not args.fp32,
+                    init_image=model_config.init_image,
+                    negative_prompt=n_prompt,
+                    num_inference_steps=model_config.steps,
+                    guidance_scale=model_config.guidance_scale,
+                    width=args.W,
+                    height=args.H,
+                    video_length=args.L,
+                    temporal_context=args.context_length,
+                    strides=args.context_stride + 1,
+                    overlap=args.context_overlap,
+                    fp16=not args.fp32,
                 ).videos
                 samples.append(sample)
 
@@ -167,6 +169,8 @@ def main(args):
     save_videos_grid(samples, f"{savedir}/combined.gif", n_rows=4)
     save_videos_grid(samples, f"/content/latest.gif", n_rows=4)
     OmegaConf.save(config, f"{savedir}/config.yaml")
+    if init_image is not None:
+        shutil.copy(init_image, f"{savedir}/init_image.jpg")
 
 
 if __name__ == "__main__":
@@ -187,7 +191,7 @@ if __name__ == "__main__":
     parser.add_argument("--context_overlap", type=int, default=-1,
                         help="overlap between chunks of context (-1 for half of context length)")
 
-    parser.add_argument("--L", type=int, default=16 )
+    parser.add_argument("--L", type=int, default=16)
     parser.add_argument("--W", type=int, default=512)
     parser.add_argument("--H", type=int, default=512)
     print('attempting to parse arguments 2')
