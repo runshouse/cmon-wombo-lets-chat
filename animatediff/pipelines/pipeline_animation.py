@@ -413,7 +413,7 @@ class AnimationPipeline(DiffusionPipeline):
                             latents = latents.to(device)
                             print("init_alpha established")
                             latents[:, :, i, :, :] = init_latents * (.00969) + latents[:, :, i, :, :] * (
-                                        1 - (.00969)) #maybe second one should be .0292
+                                        1 - (.0169)) #maybe second one should be .0292
                             influence -= 4
                             print(str(init_alpha))
                             print(str(init_latents * .00969))
