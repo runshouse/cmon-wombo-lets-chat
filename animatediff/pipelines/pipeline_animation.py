@@ -412,10 +412,11 @@ class AnimationPipeline(DiffusionPipeline):
                             init_latents = init_latents.to(device)
                             latents = latents.to(device)
                             print("init_alpha established")
-                            latents[:, :, i, :, :] = init_latents * (.00789) + latents[:, :, i, :, :] * (
-                                        1 - (.00789))
+                            latents[:, :, i, :, :] = init_latents * (.00969) + latents[:, :, i, :, :] * (
+                                        1 - (.00969)) #maybe second one should be .0292
                             influence -= 4
                             print(str(init_alpha))
+                            print(str(init_latents * .00969))
                             if influence <= 10:
                                 influence = 10
                         except Exception as e:
