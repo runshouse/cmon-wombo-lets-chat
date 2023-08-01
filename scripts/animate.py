@@ -42,7 +42,7 @@ def main(args):
     if args.cloudsave:
         savedir = f"/content/drive/MyDrive/AnimateDiff/outputs/{time_str}"
     else:
-        savedir = f"samples/{time_str}"
+        savedir = f"{outputdir}/{time_str}"
     os.makedirs(savedir)
     inference_config = OmegaConf.load(args.inference_config)
 
@@ -160,14 +160,16 @@ def main(args):
                 prompt = "-".join((prompt.replace("/", "").split(" ")[:10]))
                 prompt = re.sub(r'[^\w\s-]', '', prompt)[:16]
                 save_videos_grid(sample, f"{savedir}/{sample_idx}-{prompt}-{time_str}.gif")
-                save_videos_grid(sample, f"/content/outputs/{time_str}/{sample_idx}-{prompt}-{time_str}.gif")
+                if args.cloudsave:
+                    save_videos_grid(sample, f"/content/outputs/{time_str}/{sample_idx}-{prompt}-{time_str}.gif")
                 print(f"saving original scale outputs to {savedir}/{sample_idx}-{prompt}-{time_str}.gif")
 
                 sample_idx += 1
 
     samples = torch.concat(samples)
     save_videos_grid(samples, f"{savedir}/combined.gif", n_rows=4)
-    save_videos_grid(samples, f"/content/latest.gif", n_rows=4)
+    if args.cloudsave:
+        save_videos_grid(samples, f"/content/latest.gif", n_rows=4)
     OmegaConf.save(config, f"{savedir}/config.yaml")
     if init_image is not None:
         shutil.copy(init_image, f"{savedir}/init_image.jpg")
@@ -181,6 +183,7 @@ if __name__ == "__main__":
     parser.add_argument("--inference_config", type=str, default="configs/inference/inference.yaml")
     parser.add_argument("--config", type=str, required=True)
     parser.add_argument("--cloudsave", type=bool, default=False)
+    parser.add_argument("--outputdir", type=str, default='AnimateDiff/outputs/')
     parser.add_argument("--fp32", action="store_true")
     parser.add_argument("--disable_inversions", action="store_true",
                         help="do not scan for downloaded textual inversions")
