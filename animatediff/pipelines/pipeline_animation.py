@@ -348,8 +348,8 @@ class AnimationPipeline(DiffusionPipeline):
 
     def prepare_latents(self, init_image, batch_size, num_channels_latents, video_length, height, width, dtype, device,
                         generator, latents=None, init_image_strength=0.5):
-        strength = 0.01938 * init_image_strength
-        weight_training = strength + 0.15
+        strength = 0.01838 * init_image_strength
+        weight_training = strength + 0.015
         if init_image is None:
             init_latents = None
             init_strength = 0
