@@ -38,18 +38,19 @@ def main(args):
     if args.context_overlap == -1:
         args.context_overlap = args.context_length // 2
 
-    time_str = datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
+    time_str = "outputs"
     if args.cloudsave:
         savedir = f"/content/drive/MyDrive/AnimateDiff/outputs/{time_str}"
     else:
         savedir = f"{outputdir}/{time_str}"
-    os.makedirs(savedir)
+    if not os.path.exists(savedir):
+        os.makedirs(savedir)
     inference_config = OmegaConf.load(args.inference_config)
 
     config = OmegaConf.load(args.config)
     samples = []
 
-    sample_idx = 0
+    sample_idx = args.scene_number
 
     print('Made it to line 54')
     for model_idx, (config_key, model_config) in enumerate(list(config.items())):
@@ -195,7 +196,7 @@ if __name__ == "__main__":
     parser.add_argument("--context_overlap", type=int, default=-1,
                         help="overlap between chunks of context (-1 for half of context length)")
     parser.add_argument("--init_strength", type=float, default=0.5, help="sets the strength of influence for the init image")
-
+    parser.add_argument("--scene_number", type=int, default=0, help="Starting scene number")
     parser.add_argument("--L", type=int, default=16)
     parser.add_argument("--W", type=int, default=512)
     parser.add_argument("--H", type=int, default=512)
