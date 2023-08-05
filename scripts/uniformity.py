@@ -3,10 +3,10 @@ import asyncio
 import base64
 
 encoded_string = ""
-# Open the file in binary mode
-with open('../latest.avif', "rb") as image_file:
-    # noinspection PyRedeclaration
-    encoded_string = base64.b64encode(image_file.read()).decode()
+# # Open the file in binary mode
+# with open('../latest.avif', "rb") as image_file:
+#     # noinspection PyRedeclaration
+#     encoded_string = base64.b64encode(image_file.read()).decode()
 
 # Your API Gateway URL
 url = 'https://fn7jwwghkbv23j32ed3bvzauci0evpln.lambda-url.us-east-2.on.aws/'
