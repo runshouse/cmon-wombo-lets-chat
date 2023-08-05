@@ -61,6 +61,7 @@ class AnimationPipeline(DiffusionPipeline):
                 DPMSolverMultistepScheduler,
             ],
             scan_inversions: bool = True,
+            init_image_strength = 0.5,
     ):
         super().__init__()
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -346,9 +347,13 @@ class AnimationPipeline(DiffusionPipeline):
             )
 
     def prepare_latents(self, init_image, batch_size, num_channels_latents, video_length, height, width, dtype, device,
-                        generator, latents=None):
+                        generator, latents=None, init_image_strength=0.5):
+        strength = 0.01938 * init_image_strength
+        weight_training = strength + 0.15
         if init_image is None:
             init_latents = None
+            init_strength = 0
+
         shape = (
         batch_size, num_channels_latents, video_length, height // self.vae_scale_factor, width // self.vae_scale_factor)
         print("inside prepare latents block")
@@ -401,22 +406,22 @@ class AnimationPipeline(DiffusionPipeline):
             else:
                 latents = torch.randn(shape, generator=generator, device=rand_device, dtype=dtype).to(device)
                 if init_latents is not None:
-                    print("We doing this...")
+                    #print("We doing this...")
                     influence = 68
                     for i in range(video_length):
-                        print("Doing the loop")
+                        #print("Doing the loop")
                         # I just feel dividing by 30 yield stable result but I don't know why
                         # gradully reduce init alpha along video frames (loosen restriction)
                         try:
                             init_alpha = (video_length - float(i)) / video_length / influence
                             init_latents = init_latents.to(device)
                             latents = latents.to(device)
-                            print("init_alpha established")
-                            latents[:, :, i, :, :] = init_latents * (.00969) + latents[:, :, i, :, :] * (
-                                        1 - (.0169)) #maybe second one should be .0292
+                            #print("init_alpha established")
+                            latents[:, :, i, :, :] = init_latents * (float(strength)) + latents[:, :, i, :, :] * (
+                                        1 - (float(weight_training))) #maybe second one should be .0292 was 0.0169 and strength was 0.00969
                             influence -= 4
-                            print(str(init_alpha))
-                            print(str(init_latents * .00969))
+                            #print(str(init_alpha))
+                            #print(str(init_latents * .00969))
                             if influence <= 10:
                                 influence = 10
                         except Exception as e:
@@ -460,6 +465,7 @@ class AnimationPipeline(DiffusionPipeline):
             callback_steps: Optional[int] = 1,
             seq_policy=overlap_policy.uniform,
             fp16=False,
+            init_image_strength: float = 0.5,
             **kwargs,
     ):
         print("made it into the call")
@@ -511,6 +517,7 @@ class AnimationPipeline(DiffusionPipeline):
                 cpu,  # using cpu to store latents allows generated frame amount not to be limited by vram but by ram
                 generator,
                 latents,
+                init_image_strength
             )
         except Exception as e:
             print(f"Error: {e}")

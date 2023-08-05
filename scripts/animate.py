@@ -71,7 +71,7 @@ def main(args):
             pipeline = AnimationPipeline(
                 vae=vae, text_encoder=text_encoder, tokenizer=tokenizer, unet=unet,
                 scheduler=DDIMScheduler(**OmegaConf.to_container(inference_config.noise_scheduler_kwargs)),
-                scan_inversions=not args.disable_inversions,
+                scan_inversions=not args.disable_inversions, init_image_strength=args.init_strength
             ).to("cuda")
 
             # 1. unet ckpt
@@ -154,6 +154,7 @@ def main(args):
                     strides=args.context_stride + 1,
                     overlap=args.context_overlap,
                     fp16=not args.fp32,
+                    init_image_strength=args.init_strength
                 ).videos
                 samples.append(sample)
 
@@ -193,6 +194,7 @@ if __name__ == "__main__":
                         help="max stride of motion is 2^context_stride")
     parser.add_argument("--context_overlap", type=int, default=-1,
                         help="overlap between chunks of context (-1 for half of context length)")
+    parser.add_argument("--init_strength", type=float, default=0.5, help="sets the strength of influence for the init image")
 
     parser.add_argument("--L", type=int, default=16)
     parser.add_argument("--W", type=int, default=512)
