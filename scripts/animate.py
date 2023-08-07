@@ -72,7 +72,7 @@ def main(args):
                 subfolder="unet",
                 unet_additional_kwargs=OmegaConf.to_container(inference_config.unet_additional_kwargs)
             )
-        if is_xformers_available(): unet.enable_xformers_memory_efficient_attention()
+            if is_xformers_available(): unet.enable_xformers_memory_efficient_attention()
 
             print('Made it to line 68')
             pipeline = AnimationPipeline(
