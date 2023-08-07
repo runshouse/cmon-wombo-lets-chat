@@ -53,6 +53,8 @@ def main(args):
     sample_idx = args.scene_number
 
     print('Made it to line 54')
+    from transformers import AutoTokenizer
+    
     for model_idx, (config_key, model_config) in enumerate(list(config.items())):
         motion_modules = model_config.motion_module
         motion_modules = [motion_modules] if isinstance(motion_modules, str) else list(motion_modules)
@@ -61,7 +63,7 @@ def main(args):
             ### >>> create validation pipeline >>> ###
             
             tokenizer_path = os.path.join(args.pretrained_model_path, "tokenizer")
-            tokenizer = CLIPTokenizer(tokenizer_path, torch_dtype=torch.float16, variant="fp16")
+            tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, torch_dtype=torch.float16, variant="fp16")
             
             text_encoder_path = os.path.join(args.pretrained_model_path, "text_encoder")
             text_encoder = CLIPTextModel.from_pretrained(text_encoder_path, torch_dtype=torch.float16, variant="fp16")
@@ -78,7 +80,6 @@ def main(args):
             )
             if is_xformers_available():
                 unet.enable_xformers_memory_efficient_attention()
-
 
             pipeline = AnimationPipeline(
                 vae=vae, text_encoder=text_encoder, tokenizer=tokenizer, unet=unet,
