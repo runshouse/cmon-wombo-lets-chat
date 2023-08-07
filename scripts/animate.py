@@ -52,8 +52,6 @@ def main(args):
 
     sample_idx = args.scene_number
 
-    if is_xformers_available(): unet.enable_xformers_memory_efficient_attention()
-
     print('Made it to tokenizer = CLIPTokenizer.from_pretrained(args.pretrained_model_path, subfolder="tokenizer")')
     # Load models outside the loop
     tokenizer = CLIPTokenizer.from_pretrained(args.pretrained_model_path, subfolder="tokenizer")
@@ -74,7 +72,8 @@ def main(args):
                 subfolder="unet",
                 unet_additional_kwargs=OmegaConf.to_container(inference_config.unet_additional_kwargs)
             )
-          
+        if is_xformers_available(): unet.enable_xformers_memory_efficient_attention()
+
             print('Made it to line 68')
             pipeline = AnimationPipeline(
                 vae=vae, text_encoder=text_encoder, tokenizer=tokenizer, unet=unet,
