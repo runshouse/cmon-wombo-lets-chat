@@ -60,10 +60,10 @@ def main(args):
         for motion_module in motion_modules:
 
             ### >>> create validation pipeline >>> ###
-            tokenizer = CLIPTokenizer.from_pretrained(args.pretrained_model_path, subfolder="tokenizer")
-            text_encoder = CLIPTextModel.from_pretrained(args.pretrained_model_path, subfolder="text_encoder")
-            vae = AutoencoderKL.from_pretrained(args.pretrained_model_path, subfolder="vae")
-            unet = UNet3DConditionModel.from_pretrained_2d(args.pretrained_model_path, subfolder="unet",
+            tokenizer = CLIPTokenizer.from_pretrained(args.pretrained_model_path, subfolder="tokenizer", torch_dtype=torch.float16, variant="fp16")
+            text_encoder = CLIPTextModel.from_pretrained(args.pretrained_model_path, subfolder="text_encoder", torch_dtype=torch.float16, variant="fp16")
+            vae = AutoencoderKL.from_pretrained(args.pretrained_model_path, subfolder="vae", torch_dtype=torch.float16, variant="fp16")
+            unet = UNet3DConditionModel.from_pretrained_2d(args.pretrained_model_path, subfolder="unet",, torch_dtype=torch.float16, variant="fp16"
                                                            unet_additional_kwargs=OmegaConf.to_container(
                                                                inference_config.unet_additional_kwargs))
             print('Made it to line 68')
