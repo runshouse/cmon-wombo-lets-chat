@@ -27,7 +27,7 @@ import csv, pdb, glob
 from safetensors import safe_open
 import math
 from pathlib import Path
-
+import xformers
 
 def main(args):
     *_, func_args = inspect.getargvalues(inspect.currentframe())
