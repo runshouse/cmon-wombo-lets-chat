@@ -185,7 +185,7 @@ if __name__ == "__main__":
     print('attempting to parse arguments 1')
     parser = argparse.ArgumentParser()
     print('first stage arguments parsed')
-    parser.add_argument("--pretrained_model_path", type=str, default="models/StableDiffusion/stable-diffusion-v1-5", )
+    parser.add_argument("--pretrained_model_path", type=str, default="models/StableDiffusion", )
     parser.add_argument("--inference_config", type=str, default="configs/inference/inference.yaml")
     parser.add_argument("--config", type=str, required=True)
     parser.add_argument("--cloudsave", type=bool, default=False)
