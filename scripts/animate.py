@@ -52,12 +52,17 @@ def main(args):
 
     sample_idx = args.scene_number
 
-    print('Made it to line 54')
+    if is_xformers_available(): unet.enable_xformers_memory_efficient_attention()
+
+    print('Made it to tokenizer = CLIPTokenizer.from_pretrained(args.pretrained_model_path, subfolder="tokenizer")')
     # Load models outside the loop
     tokenizer = CLIPTokenizer.from_pretrained(args.pretrained_model_path, subfolder="tokenizer")
+    print('Made it to text_encoder = CLIPTextModel.from_pretrained(args.pretrained_model_path, subfolder="text_encoder")')
     text_encoder = CLIPTextModel.from_pretrained(args.pretrained_model_path, subfolder="text_encoder")
+    print('Made it to vae = AutoencoderKL.from_pretrained(args.pretrained_model_path, subfolder="vae")')
     vae = AutoencoderKL.from_pretrained(args.pretrained_model_path, subfolder="vae")
-    
+
+    print('Made it to loop')
     for model_idx, (config_key, model_config) in enumerate(list(config.items())):
     
         motion_modules = model_config.motion_module
@@ -71,8 +76,6 @@ def main(args):
             )
           
             print('Made it to line 68')
-            if is_xformers_available(): unet.enable_xformers_memory_efficient_attention()
-
             pipeline = AnimationPipeline(
                 vae=vae, text_encoder=text_encoder, tokenizer=tokenizer, unet=unet,
                 scheduler=DDIMScheduler(**OmegaConf.to_container(inference_config.noise_scheduler_kwargs)),
