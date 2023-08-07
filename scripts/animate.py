@@ -61,7 +61,7 @@ def main(args):
             ### >>> create validation pipeline >>> ###
             
             tokenizer_path = os.path.join(args.pretrained_model_path, "tokenizer")
-            tokenizer = PreTrainedTokenizerFast.from_pretrained(tokenizer_path, torch_dtype=torch.float16, variant="fp16")
+            tokenizer = CLIPTokenizer(tokenizer_path, torch_dtype=torch.float16, variant="fp16")
             
             text_encoder_path = os.path.join(args.pretrained_model_path, "text_encoder")
             text_encoder = CLIPTextModel.from_pretrained(text_encoder_path, torch_dtype=torch.float16, variant="fp16")
