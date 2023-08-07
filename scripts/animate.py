@@ -74,9 +74,13 @@ def main(args):
             unet = UNet3DConditionModel.from_pretrained_2d(
                 args.pretrained_model_path,
                 subfolder="unet",
-                torch_dtype=torch.float16,
-                variant="fp16",
-                unet_additional_kwargs=OmegaConf.to_container(inference_config.unet_additional_kwargs)
+                unet_additional_kwargs=OmegaConf.to_container(inference_config.unet_additional_kwargs),
+                block_out_channels=(160, 320, 640, 640),  # Reduce output channels
+                layers_per_block=1,  # Decrease layers per block
+                norm_num_groups=16,  # Reduce normalization groups
+                cross_attention_dim=640,  # Reduce cross-attention dimension
+                attention_head_dim=4,  # Reduce attention head dimension
+                num_attention_heads=4  # Reduce number of attention heads
             )
             if is_xformers_available():
                 unet.enable_xformers_memory_efficient_attention()
