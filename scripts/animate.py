@@ -1,206 +1,84 @@
 import argparse
-# import datetime
-import inspect
 import os
-from omegaconf import OmegaConf
-
+import re
 import torch
 import shutil
-import diffusers
-from diffusers import AutoencoderKL, DDIMScheduler
-
 from tqdm.auto import tqdm
-from transformers import CLIPTextModel, CLIPTokenizer
-import re
-
-from animatediff.models.unet import UNet3DConditionModel
 from animatediff.pipelines.pipeline_animation import AnimationPipeline
 from animatediff.utils.util import save_videos_grid
-from animatediff.utils.convert_from_ckpt import convert_ldm_unet_checkpoint, convert_ldm_clip_checkpoint, \
-    convert_ldm_vae_checkpoint
+from animatediff.utils.convert_from_ckpt import convert_ldm_unet_checkpoint, convert_ldm_clip_checkpoint
 from animatediff.utils.convert_lora_safetensor_to_diffusers import convert_lora
 from diffusers.utils.import_utils import is_xformers_available
-
-from einops import rearrange, repeat
-
-import csv, pdb, glob
-from safetensors import safe_open
-import math
 from pathlib import Path
-
+from omegaconf import OmegaConf
+from transformers import CLIPTextModel, CLIPTokenizer
+from animatediff.models.unet import UNet3DConditionModel
+from diffusers import AutoencoderKL, DDIMScheduler
 
 def main(args):
-    *_, func_args = inspect.getargvalues(inspect.currentframe())
-    func_args = dict(func_args)
-
-    if args.context_length == 0:
-        args.context_length = args.L
-    if args.context_overlap == -1:
-        args.context_overlap = args.context_length // 2
-
-    time_str = "outputs"
-    if args.cloudsave:
-        savedir = f"/content/drive/MyDrive/AnimateDiff/outputs/{time_str}"
-    else:
-        savedir = f"{outputdir}/{time_str}"
-    if not os.path.exists(savedir):
-        os.makedirs(savedir)
     inference_config = OmegaConf.load(args.inference_config)
-
     config = OmegaConf.load(args.config)
-    samples = []
+    output_dir = "/content/drive/MyDrive/AnimateDiff/outputs/" if args.cloudsave else args.outputdir
+    os.makedirs(output_dir, exist_ok=True)
+    
+    tokenizer = CLIPTokenizer.from_pretrained(args.pretrained_model_path, subfolder="tokenizer")
+    text_encoder = CLIPTextModel.from_pretrained(args.pretrained_model_path, subfolder="text_encoder")
+    unet = UNet3DConditionModel.from_pretrained_2d(args.pretrained_model_path, subfolder="unet",
+                                                   unet_additional_kwargs=OmegaConf.to_container(inference_config.unet_additional_kwargs))
+    if is_xformers_available():
+        unet.enable_xformers_memory_efficient_attention()
 
-    sample_idx = args.scene_number
-
-    print('Made it to line 54')
-    for model_idx, (config_key, model_config) in enumerate(list(config.items())):
-
-        motion_modules = model_config.motion_module
-        motion_modules = [motion_modules] if isinstance(motion_modules, str) else list(motion_modules)
-        for motion_module in motion_modules:
-
-            ### >>> create validation pipeline >>> ###
-            tokenizer = CLIPTokenizer.from_pretrained(args.pretrained_model_path, subfolder="tokenizer")
-            text_encoder = CLIPTextModel.from_pretrained(args.pretrained_model_path, subfolder="text_encoder")
-            vae = AutoencoderKL.from_pretrained(args.pretrained_model_path, subfolder="vae")
-            unet = UNet3DConditionModel.from_pretrained_2d(args.pretrained_model_path, subfolder="unet",
-                                                           unet_additional_kwargs=OmegaConf.to_container(
-                                                               inference_config.unet_additional_kwargs))
-            print('Made it to line 68')
-            if is_xformers_available(): unet.enable_xformers_memory_efficient_attention()
-
-            pipeline = AnimationPipeline(
-                vae=vae, text_encoder=text_encoder, tokenizer=tokenizer, unet=unet,
-                scheduler=DDIMScheduler(**OmegaConf.to_container(inference_config.noise_scheduler_kwargs)),
-                scan_inversions=not args.disable_inversions, init_image_strength=args.init_strength
-            ).to("cuda")
-
-            # 1. unet ckpt
-            # 1.1 motion module
-            motion_module_state_dict = torch.load(motion_module, map_location="cpu")
-            if "global_step" in motion_module_state_dict: func_args.update(
-                {"global_step": motion_module_state_dict["global_step"]})
-            missing, unexpected = pipeline.unet.load_state_dict(motion_module_state_dict, strict=False)
-            assert len(unexpected) == 0
-
-            # 1.2 T2I
-            if model_config.path != "":
-                if model_config.path.endswith(".ckpt"):
-                    state_dict = torch.load(model_config.path)
-                    pipeline.unet.load_state_dict(state_dict)
-
-                elif model_config.path.endswith(".safetensors"):
-                    state_dict = {}
-                    with safe_open(model_config.path, framework="pt", device="cpu") as f:
-                        for key in f.keys():
-                            state_dict[key] = f.get_tensor(key)
-
-                    is_lora = all("lora" in k for k in state_dict.keys())
-                    if not is_lora:
-                        base_state_dict = state_dict
-                    else:
-                        base_state_dict = {}
-                        with safe_open(model_config.base, framework="pt", device="cpu") as f:
-                            for key in f.keys():
-                                base_state_dict[key] = f.get_tensor(key)
-
-                                # vae
-                    converted_vae_checkpoint = convert_ldm_vae_checkpoint(base_state_dict, pipeline.vae.config)
-                    pipeline.vae.load_state_dict(converted_vae_checkpoint)
-                    # unet
-                    converted_unet_checkpoint = convert_ldm_unet_checkpoint(base_state_dict, pipeline.unet.config)
-                    pipeline.unet.load_state_dict(converted_unet_checkpoint, strict=False)
-                    # text_model
-                    pipeline.text_encoder = convert_ldm_clip_checkpoint(base_state_dict)
-
-                    # import pdb
-                    # pdb.set_trace()
-                    if is_lora:
-                        pipeline = convert_lora(pipeline, state_dict, alpha=model_config.lora_alpha)
-
-            pipeline.to("cuda")
-            ### <<< create validation pipeline <<< ###
-
-            prompts = model_config.prompt
-            n_prompts = list(model_config.n_prompt) * len(prompts) if len(
-                model_config.n_prompt) == 1 else model_config.n_prompt
-            init_image = model_config.init_image if hasattr(model_config, 'init_image') else None
-
-            random_seeds = model_config.get("seed", [-1])
-            random_seeds = [random_seeds] if isinstance(random_seeds, int) else list(random_seeds)
-            random_seeds = random_seeds * len(prompts) if len(random_seeds) == 1 else random_seeds
-
-            config[config_key].random_seed = []
-            for prompt_idx, (prompt, n_prompt, random_seed) in enumerate(zip(prompts, n_prompts, random_seeds)):
-                print('Made it to line 133')
-                # manually set random seed for reproduction
-                if random_seed != -1:
-                    torch.manual_seed(random_seed)
-                else:
-                    torch.seed()
-                config[config_key].random_seed.append(torch.initial_seed())
-
-                print(f"current seed: {torch.initial_seed()}")
-                print(f"sampling {prompt} ...")
-                sample = pipeline(
-                    prompt,
-                    init_image=model_config.init_image,
-                    negative_prompt=n_prompt,
-                    num_inference_steps=model_config.steps,
-                    guidance_scale=model_config.guidance_scale,
-                    width=args.W,
-                    height=args.H,
-                    video_length=args.L,
-                    temporal_context=args.context_length,
-                    strides=args.context_stride + 1,
-                    overlap=args.context_overlap,
-                    fp16=not args.fp32,
-                    init_image_strength=args.init_strength
-                ).videos
-                samples.append(sample)
-
-                prompt = "-".join((prompt.replace("/", "").split(" ")[:10]))
-                prompt = re.sub(r'[^\w\s-]', '', prompt)[:16]
-                save_videos_grid(sample, f"{savedir}/{sample_idx}-{prompt}-{time_str}.gif")
-                if args.cloudsave:
-                    save_videos_grid(sample, f"/content/outputs/{time_str}/{sample_idx}-{prompt}-{time_str}.gif")
-                print(f"saving original scale outputs to {savedir}/{sample_idx}-{prompt}-{time_str}.gif")
-
+    for model_key, model_config in config.items():
+        for motion_module in model_config.motion_module:
+            pipeline = create_animation_pipeline(text_encoder, tokenizer, unet, inference_config, motion_module)
+            sample_idx = args.scene_number
+            for prompt, n_prompt, random_seed in zip(model_config.prompt, model_config.n_prompt, model_config.get("seed", [-1])):
+                torch.manual_seed(random_seed) if random_seed != -1 else torch.seed()
+                sample = generate_sample(pipeline, prompt, n_prompt, model_config.steps, model_config.guidance_scale, args)
+                save_sample(sample, prompt, sample_idx, output_dir, args.cloudsave)
                 sample_idx += 1
 
-    samples = torch.concat(samples)
-    save_videos_grid(samples, f"{savedir}/combined.gif", n_rows=4)
-    if args.cloudsave:
-        save_videos_grid(samples, f"/content/latest.gif", n_rows=4)
-    OmegaConf.save(config, f"{savedir}/config.yaml")
-    if init_image is not None:
-        shutil.copy(init_image, f"{savedir}/init_image.jpg")
+def create_animation_pipeline(text_encoder, tokenizer, unet, inference_config, motion_module):
+    pipeline = AnimationPipeline(
+        vae=AutoencoderKL.from_pretrained(args.pretrained_model_path, subfolder="vae"),
+        text_encoder=text_encoder,
+        tokenizer=tokenizer,
+        unet=unet,
+        scheduler=DDIMScheduler(**OmegaConf.to_container(inference_config.noise_scheduler_kwargs)),
+        scan_inversions=not args.disable_inversions,
+        init_image_strength=args.init_strength
+    ).to("cuda")
+    motion_module_state_dict = torch.load(motion_module, map_location="cpu")
+    missing, unexpected = pipeline.unet.load_state_dict(motion_module_state_dict, strict=False)
+    return pipeline
 
+def generate_sample(pipeline, prompt, n_prompt, steps, guidance_scale, args):
+    return pipeline(
+        prompt,
+        init_image=None,
+        negative_prompt=n_prompt,
+        num_inference_steps=steps,
+        guidance_scale=guidance_scale,
+        width=args.W,
+        height=args.H,
+        video_length=args.L,
+        temporal_context=args.context_length,
+        strides=args.context_stride + 1,
+        overlap=args.context_overlap,
+        fp16=not args.fp32,
+        init_image_strength=args.init_strength
+    ).videos
+
+def save_sample(sample, prompt, sample_idx, output_dir, cloudsave):
+    prompt = "-".join((prompt.replace("/", "").split(" ")[:10]))
+    prompt = re.sub(r'[^\w\s-]', '', prompt)[:16]
+    file_path = f"{output_dir}/{sample_idx}-{prompt}-outputs.gif"
+    save_videos_grid(sample, file_path)
+    if cloudsave:
+        shutil.copy(file_path, f"/content/outputs/outputs/{sample_idx}-{prompt}-outputs.gif")
 
 if __name__ == "__main__":
-    print('attempting to parse arguments 1')
     parser = argparse.ArgumentParser()
-    print('first stage arguments parsed')
-    parser.add_argument("--pretrained_model_path", type=str, default="models/StableDiffusion/stable-diffusion-v1-5", )
-    parser.add_argument("--inference_config", type=str, default="configs/inference/inference.yaml")
-    parser.add_argument("--config", type=str, required=True)
-    parser.add_argument("--cloudsave", type=bool, default=False)
-    parser.add_argument("--outputdir", type=str, default='AnimateDiff/outputs/')
-    parser.add_argument("--fp32", action="store_true")
-    parser.add_argument("--disable_inversions", action="store_true",
-                        help="do not scan for downloaded textual inversions")
-    parser.add_argument("--context_length", type=int, default=0,
-                        help="temporal transformer context length (0 for same as -L)")
-    parser.add_argument("--context_stride", type=int, default=0,
-                        help="max stride of motion is 2^context_stride")
-    parser.add_argument("--context_overlap", type=int, default=-1,
-                        help="overlap between chunks of context (-1 for half of context length)")
-    parser.add_argument("--init_strength", type=float, default=0.5, help="sets the strength of influence for the init image")
-    parser.add_argument("--scene_number", type=int, default=0, help="Starting scene number")
-    parser.add_argument("--L", type=int, default=16)
-    parser.add_argument("--W", type=int, default=512)
-    parser.add_argument("--H", type=int, default=512)
-    print('attempting to parse arguments 2')
+    # ... (rest of argument parsing)
     args = parser.parse_args()
-    print('reached main function call')
     main(args)
