@@ -70,9 +70,15 @@ def main(args):
             vae = AutoencoderKL.from_pretrained(args.pretrained_model_path, subfolder="vae")
             torch.cuda.empty_cache()
             print("unet")
-            unet = UNet3DConditionModel.from_pretrained_2d(args.pretrained_model_path, subfolder="unet",
-                                                           unet_additional_kwargs=OmegaConf.to_container(
-                                                               inference_config.unet_additional_kwargs))
+            try:
+                unet = UNet3DConditionModel.from_pretrained_2d(
+                    args.pretrained_model_path,
+                    subfolder="unet",
+                    unet_additional_kwargs=OmegaConf.to_container(inference_config.unet_additional_kwargs)
+                )
+            except Exception as e:
+                print("Error while loading U-Net model:", e)
+                
             torch.cuda.empty_cache()
             print('Made it to line 68')
             if is_xformers_available(): unet.enable_xformers_memory_efficient_attention()
