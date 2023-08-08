@@ -62,14 +62,18 @@ def main(args):
             ### >>> create validation pipeline >>> ###
             print("tokenizer")
             tokenizer = CLIPTokenizer.from_pretrained(args.pretrained_model_path, subfolder="tokenizer")
+            torch.cuda.empty_cache()
             print("text encoder")
             text_encoder = CLIPTextModel.from_pretrained(args.pretrained_model_path, subfolder="text_encoder")
+            torch.cuda.empty_cache()
             print("vae")
             vae = AutoencoderKL.from_pretrained(args.pretrained_model_path, subfolder="vae")
+            torch.cuda.empty_cache()
             print("unet")
             unet = UNet3DConditionModel.from_pretrained_2d(args.pretrained_model_path, subfolder="unet",
                                                            unet_additional_kwargs=OmegaConf.to_container(
                                                                inference_config.unet_additional_kwargs))
+            torch.cuda.empty_cache()
             print('Made it to line 68')
             if is_xformers_available(): unet.enable_xformers_memory_efficient_attention()
 
