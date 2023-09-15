@@ -42,7 +42,7 @@ def main(args):
     if args.cloudsave:
         savedir = f"/content/drive/MyDrive/AnimateDiff/outputs/{time_str}"
     else:
-        savedir = f"{outputdir}/{time_str}"
+        savedir = f"{args.outputdir}/{time_str}"
     if not os.path.exists(savedir):
         os.makedirs(savedir)
     inference_config = OmegaConf.load(args.inference_config)
