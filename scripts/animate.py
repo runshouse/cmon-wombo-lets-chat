@@ -62,13 +62,13 @@ def main(args):
             ### >>> create validation pipeline >>> ###
             print("tokenizer")
             tokenizer = CLIPTokenizer.from_pretrained(args.pretrained_model_path, subfolder="tokenizer")
-            torch.cuda.empty_cache()
+            # torch.cuda.empty_cache()
             print("text encoder")
             text_encoder = CLIPTextModel.from_pretrained(args.pretrained_model_path, subfolder="text_encoder")
-            torch.cuda.empty_cache()
+            # torch.cuda.empty_cache()
             print("vae")
             vae = AutoencoderKL.from_pretrained(args.pretrained_model_path, subfolder="vae")
-            torch.cuda.empty_cache()
+            # torch.cuda.empty_cache()
             print("unet")
             try:
                 unet = UNet3DConditionModel.from_pretrained_2d(
@@ -79,7 +79,7 @@ def main(args):
             except Exception as e:
                 print("Error while loading U-Net model:", e)
                 
-            torch.cuda.empty_cache()
+            # torch.cuda.empty_cache()
             print('Made it to line 68')
             if is_xformers_available(): unet.enable_xformers_memory_efficient_attention()
 
@@ -156,6 +156,7 @@ def main(args):
 
                 print(f"current seed: {torch.initial_seed()}")
                 print(f"sampling {prompt} ...")
+                torch.cuda.empty_cache()
                 sample = pipeline(
                     prompt,
                     init_image=model_config.init_image,
