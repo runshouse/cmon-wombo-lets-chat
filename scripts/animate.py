@@ -145,6 +145,7 @@ def main(args):
             random_seeds = random_seeds * len(prompts) if len(random_seeds) == 1 else random_seeds
 
             config[config_key].random_seed = []
+            
             for prompt_idx, (prompt, n_prompt, random_seed) in enumerate(zip(prompts, n_prompts, random_seeds)):
                 print('Made it to line 133')
                 # manually set random seed for reproduction
@@ -156,7 +157,7 @@ def main(args):
 
                 print(f"current seed: {torch.initial_seed()}")
                 print(f"sampling {prompt} ...")
-                torch.cuda.empty_cache()
+
                 sample = pipeline(
                     prompt,
                     init_image=model_config.init_image,
@@ -176,6 +177,7 @@ def main(args):
 
                 prompt = "-".join((prompt.replace("/", "").split(" ")[:10]))
                 prompt = re.sub(r'[^\w\s-]', '', prompt)[:16]
+                torch.cuda.empty_cache()
                 save_videos_grid(sample, f"{savedir}/{sample_idx}-{prompt}-{time_str}.gif")
                 if args.cloudsave:
                     save_videos_grid(sample, f"/content/outputs/{time_str}/{sample_idx}-{prompt}-{time_str}.gif")
