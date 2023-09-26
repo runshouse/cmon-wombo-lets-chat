@@ -465,7 +465,7 @@ class AnimationPipeline(DiffusionPipeline):
             callback: Optional[Callable[[int, int, torch.FloatTensor], None]] = None,
             callback_steps: Optional[int] = 1,
             seq_policy=overlap_policy.uniform,
-            fp16=False,
+            fp16=True,
             init_image_strength: float = 0.5,
             **kwargs,
     ):
@@ -514,7 +514,7 @@ class AnimationPipeline(DiffusionPipeline):
                 video_length,
                 height,
                 width,
-                torch.float32,
+                torch.float16,
                 cpu,  # using cpu to store latents allows generated frame amount not to be limited by vram but by ram
                 generator,
                 latents,
@@ -526,20 +526,20 @@ class AnimationPipeline(DiffusionPipeline):
         latents_dtype = latents.dtype
         print("made it passed latent variables")
         
-        gc.collect()
-        torch.cuda.empty_cache()
-
         # Prepare extra step kwargs.
         extra_step_kwargs = self.prepare_extra_step_kwargs(generator, eta)
         total = sum(
             len(list(seq_policy(i, num_inference_steps, latents.shape[2], temporal_context, strides, overlap)))
             for i in range(len(timesteps))
         )
+        print("made it to 535")
+        
         # Denoising loop
         num_warmup_steps = len(timesteps) - num_inference_steps * self.scheduler.order
         try:
             with self.progress_bar(total=total) as progress_bar:
                 for i, t in enumerate(timesteps):
+                    
                     noise_pred = torch.zeros((latents.shape[0] * (2 if do_classifier_free_guidance else 1),
                                               *latents.shape[1:]), device=latents.device, dtype=latents_dtype)
                     counter = torch.zeros((1, 1, latents.shape[2], 1, 1), device=latents.device, dtype=latents_dtype)
