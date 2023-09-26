@@ -14,20 +14,50 @@ from packaging import version
 from PIL import Image
 
 
-def save_videos_grid(videos: torch.Tensor, path: str, rescale=False, n_rows=6, fps=8):
+# def save_videos_grid(videos: torch.Tensor, path: str, rescale=False, n_rows=6, fps=8):
+#     videos = rearrange(videos, "b c t h w -> t b c h w")
+#     outputs = []
+#     for x in videos:
+#         x = torchvision.utils.make_grid(x, nrow=n_rows)
+#         x = x.transpose(0, 1).transpose(1, 2).squeeze(-1)
+#         if rescale:
+#             x = (x + 1.0) / 2.0  # -1,1 -> 0,1
+#         x = (x * 255).numpy().astype(np.uint8)
+#         outputs.append(x)
+#     duration = 1000 * 1/8
+#     os.makedirs(os.path.dirname(path), exist_ok=True)
+#     imageio.mimsave(path, outputs, duration=duration)
+
+def save_videos_grid(videos: torch.Tensor, path: str, rescale=False, n_rows=6):
     videos = rearrange(videos, "b c t h w -> t b c h w")
     outputs = []
-    for x in videos:
+
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    
+    for frame_num, x in enumerate(videos, 1):  # Start counting from 1
         x = torchvision.utils.make_grid(x, nrow=n_rows)
         x = x.transpose(0, 1).transpose(1, 2).squeeze(-1)
+        
         if rescale:
             x = (x + 1.0) / 2.0  # -1,1 -> 0,1
         x = (x * 255).numpy().astype(np.uint8)
-        outputs.append(x)
-    duration = 1000 * 1/8
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    imageio.mimsave(path, outputs, duration=duration)
 
+        # Save PNGS as sequential filenames
+        frame_path = os.path.join(os.path.dirname(path), f"{frame_num:04}.png")
+        try:
+            imageio.imsave(frame_path, x)
+            print(f"Saved frame to {frame_path}")
+        except Exception as e:
+            print(f"Error saving frame {frame_num}: {e}")
+
+        outputs.append(x)
+
+    try:
+        print("Saving GIF to", path)
+        imageio.mimsave(path, outputs, duration=125, loop=0)
+        print("GIF saved. File exists:", os.path.exists(path))
+    except Exception as e:
+        print(f"Error saving GIF: {e}")
 
 # DDIM Inversion
 @torch.no_grad()
