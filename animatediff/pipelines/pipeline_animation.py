@@ -464,7 +464,7 @@ class AnimationPipeline(DiffusionPipeline):
             callback: Optional[Callable[[int, int, torch.FloatTensor], None]] = None,
             callback_steps: Optional[int] = 1,
             seq_policy=overlap_policy.uniform,
-            fp16=False,
+            fp16=True,
             init_image_strength: float = 0.5,
             **kwargs,
     ):
