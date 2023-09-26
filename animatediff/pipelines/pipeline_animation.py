@@ -514,7 +514,7 @@ class AnimationPipeline(DiffusionPipeline):
                 video_length,
                 height,
                 width,
-                torch.float16,
+                torch.float32,
                 cpu,  # using cpu to store latents allows generated frame amount not to be limited by vram but by ram
                 generator,
                 latents,
