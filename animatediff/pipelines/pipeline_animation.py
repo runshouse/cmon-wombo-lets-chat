@@ -524,7 +524,7 @@ class AnimationPipeline(DiffusionPipeline):
 
         latents_dtype = latents.dtype
         print("made it passed latent variables")
-        torch.cuda.empty_cache()
+    
         # Prepare extra step kwargs.
         extra_step_kwargs = self.prepare_extra_step_kwargs(generator, eta)
         total = sum(
