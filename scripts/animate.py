@@ -88,8 +88,8 @@ def main(args):
                 scheduler=DDIMScheduler(**OmegaConf.to_container(inference_config.noise_scheduler_kwargs)),
                 scan_inversions=not args.disable_inversions, init_image_strength=args.init_strength
             ).to("cuda")
-            gc.collect()
-            torch.cuda.empty_cache()
+            # gc.collect()
+            # torch.cuda.empty_cache()
 
             # 1. unet ckpt
             # 1.1 motion module
@@ -179,7 +179,7 @@ def main(args):
 
                 prompt = "-".join((prompt.replace("/", "").split(" ")[:10]))
                 prompt = re.sub(r'[^\w\s-]', '', prompt)[:16]
-                torch.cuda.empty_cache()
+                # torch.cuda.empty_cache()
                 save_videos_grid(sample, f"{savedir}/{sample_idx}-{prompt}-{time_str}.gif")
                 if args.cloudsave:
                     save_videos_grid(sample, f"/content/outputs/{time_str}/{sample_idx}-{prompt}-{time_str}.gif")
