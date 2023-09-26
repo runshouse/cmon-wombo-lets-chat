@@ -88,6 +88,8 @@ def main(args):
                 scheduler=DDIMScheduler(**OmegaConf.to_container(inference_config.noise_scheduler_kwargs)),
                 scan_inversions=not args.disable_inversions, init_image_strength=args.init_strength
             ).to("cuda")
+            gc.collect()
+            torch.cuda.empty_cache()
 
             # 1. unet ckpt
             # 1.1 motion module
