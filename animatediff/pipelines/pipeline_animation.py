@@ -9,6 +9,7 @@ import numpy as np
 import torch
 from torch import nn
 from tqdm import tqdm
+import gc
 
 from diffusers.utils import is_accelerate_available
 from packaging import version
@@ -524,7 +525,10 @@ class AnimationPipeline(DiffusionPipeline):
 
         latents_dtype = latents.dtype
         print("made it passed latent variables")
-    
+        
+        gc.collect()
+        torch.cuda.empty_cache()
+
         # Prepare extra step kwargs.
         extra_step_kwargs = self.prepare_extra_step_kwargs(generator, eta)
         total = sum(
