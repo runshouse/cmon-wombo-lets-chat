@@ -70,6 +70,7 @@ def main(args):
             vae = AutoencoderKL.from_pretrained(args.pretrained_model_path, subfolder="vae")
             # torch.cuda.empty_cache()
             print("unet")
+            torch.cuda.empty_cache()
             try:
                 unet = UNet3DConditionModel.from_pretrained_2d(
                     args.pretrained_model_path,
