@@ -134,7 +134,9 @@ def main(args):
                 pipeline.enable_sequential_cpu_offload()
             else:
                 pipeline.to("cuda")
-                
+
+            print("Using ", args.offload)
+            
             ### <<< create validation pipeline <<< ###
 
             prompts = model_config.prompt
@@ -149,7 +151,7 @@ def main(args):
             config[config_key].random_seed = []
             
             for prompt_idx, (prompt, n_prompt, random_seed) in enumerate(zip(prompts, n_prompts, random_seeds)):
-                print('Made it to line 133')
+                print('Made it to line 154')
                 # manually set random seed for reproduction
                 if random_seed != -1:
                     torch.manual_seed(random_seed)
@@ -159,7 +161,7 @@ def main(args):
 
                 print(f"current seed: {torch.initial_seed()}")
                 print(f"sampling {prompt} ...")
-
+                print('Made it to line 164')
                 sample = pipeline(
                     prompt,
                     init_image=model_config.init_image,
@@ -176,7 +178,7 @@ def main(args):
                     init_image_strength=args.init_strength
                 ).videos
                 samples.append(sample)
-
+                print('Made it to line 181')
                 prompt = "-".join((prompt.replace("/", "").split(" ")[:10]))
                 prompt = re.sub(r'[^\w\s-]', '', prompt)[:16]
 
@@ -184,7 +186,7 @@ def main(args):
                 if args.cloudsave:
                     save_videos_grid(sample, f"/content/outputs/{time_str}/{sample_idx}-{prompt}-{time_str}.gif")
                 print(f"saving original scale outputs to {savedir}/{sample_idx}-{prompt}-{time_str}.gif")
-
+                print('Made it to line 189')
                 sample_idx += 1
 
     samples = torch.concat(samples)
