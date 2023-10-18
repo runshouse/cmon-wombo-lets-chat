@@ -831,7 +831,7 @@ def convert_open_clip_checkpoint(checkpoint):
     else:
         d_model = 1024
 
-    # text_model_dict["text_model.embeddings.position_ids"] = text_model.text_model.embeddings.get_buffer("position_ids")
+    text_model_dict["text_model.embeddings.position_ids"] = text_model.text_model.embeddings.get_buffer("position_ids")
 
     for key in keys:
         if "resblocks.23" in key:  # Diffusers drops the final layer and only uses the penultimate layer
