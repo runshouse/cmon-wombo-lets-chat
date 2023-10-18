@@ -135,7 +135,7 @@ def main(args):
                     if is_lora:
                         pipeline = convert_lora(pipeline, state_dict, alpha=model_config.lora_alpha)
 
-            if offload == 'GPU':
+            if args.offload == 'GPU':
                 pipeline.to("cuda")
             else:
                 pipeline.enable_sequential_cpu_offload()
