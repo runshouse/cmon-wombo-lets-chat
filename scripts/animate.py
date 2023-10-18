@@ -88,7 +88,7 @@ def main(args):
 
             # 1. unet ckpt
             # 1.1 motion module
-            motion_module_state_dict = torch.load(motion_module, map_location="cpu")
+            motion_module_state_dict = torch.load(motion_module, map_location=args.offload)
             if "global_step" in motion_module_state_dict: func_args.update(
                 {"global_step": motion_module_state_dict["global_step"]})
             missing, unexpected = pipeline.unet.load_state_dict(motion_module_state_dict, strict=False)
@@ -102,7 +102,7 @@ def main(args):
 
                 elif model_config.path.endswith(".safetensors"):
                     state_dict = {}
-                    with safe_open(model_config.path, framework="pt", device="cpu") as f:
+                    with safe_open(model_config.path, framework="pt", device=args.offload) as f:
                         for key in f.keys():
                             state_dict[key] = f.get_tensor(key)
 
@@ -111,7 +111,7 @@ def main(args):
                         base_state_dict = state_dict
                     else:
                         base_state_dict = {}
-                        with safe_open(model_config.base, framework="pt", device="cpu") as f:
+                        with safe_open(model_config.base, framework="pt", device=args.offload) as f:
                             for key in f.keys():
                                 base_state_dict[key] = f.get_tensor(key)
 
