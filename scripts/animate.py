@@ -62,13 +62,10 @@ def main(args):
             ### >>> create validation pipeline >>> ###
             print("tokenizer")
             tokenizer = CLIPTokenizer.from_pretrained(args.pretrained_model_path, subfolder="tokenizer")
-            # torch.cuda.empty_cache()
             print("text encoder")
             text_encoder = CLIPTextModel.from_pretrained(args.pretrained_model_path, subfolder="text_encoder")
-            # torch.cuda.empty_cache()
             print("vae")
             vae = AutoencoderKL.from_pretrained(args.pretrained_model_path, subfolder="vae")
-            # torch.cuda.empty_cache()
             print("unet")
  
             try:
@@ -80,7 +77,6 @@ def main(args):
             except Exception as e:
                 print("Error while loading U-Net model:", e)
           
-            # torch.cuda.empty_cache()
             print('Made it to line 68')
             if is_xformers_available(): unet.enable_xformers_memory_efficient_attention()
 
@@ -88,9 +84,7 @@ def main(args):
                 vae=vae, text_encoder=text_encoder, tokenizer=tokenizer, unet=unet,
                 scheduler=DDIMScheduler(**OmegaConf.to_container(inference_config.noise_scheduler_kwargs)),
                 scan_inversions=not args.disable_inversions, init_image_strength=args.init_strength
-            ).to("cuda")
-            # gc.collect()
-            # torch.cuda.empty_cache()
+            ).to(args.offload)
 
             # 1. unet ckpt
             # 1.1 motion module
@@ -135,10 +129,10 @@ def main(args):
                     if is_lora:
                         pipeline = convert_lora(pipeline, state_dict, alpha=model_config.lora_alpha)
 
-            if args.offload == 'GPU':
-                pipeline.to("cuda")
-            else:
-                pipeline.enable_sequential_cpu_offload()
+            # if args.offload == 'GPU':
+            #     # pipeline.to("cuda")
+            # else:
+                # pipeline.enable_sequential_cpu_offload()
             ### <<< create validation pipeline <<< ###
 
             prompts = model_config.prompt
@@ -183,7 +177,7 @@ def main(args):
 
                 prompt = "-".join((prompt.replace("/", "").split(" ")[:10]))
                 prompt = re.sub(r'[^\w\s-]', '', prompt)[:16]
-                # torch.cuda.empty_cache()
+
                 save_videos_grid(sample, f"{savedir}/{sample_idx}-{prompt}-{time_str}.gif")
                 if args.cloudsave:
                     save_videos_grid(sample, f"/content/outputs/{time_str}/{sample_idx}-{prompt}-{time_str}.gif")
@@ -223,7 +217,7 @@ if __name__ == "__main__":
     parser.add_argument("--L", type=int, default=16)
     parser.add_argument("--W", type=int, default=512)
     parser.add_argument("--H", type=int, default=512)
-    parser.add_argument("--offload", type=str, default='GPU')
+    parser.add_argument("--offload", type=str, default='cuda')
     print('attempting to parse arguments 2')
     args = parser.parse_args()
     print('reached main function call')
