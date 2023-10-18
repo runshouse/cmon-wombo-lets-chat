@@ -135,7 +135,10 @@ def main(args):
                     if is_lora:
                         pipeline = convert_lora(pipeline, state_dict, alpha=model_config.lora_alpha)
 
-            pipeline.to("cuda")
+            if offload == 'GPU':
+                pipeline.to("cuda")
+            else:
+                pipeline.enable_sequential_cpu_offload()
             ### <<< create validation pipeline <<< ###
 
             prompts = model_config.prompt
@@ -220,6 +223,7 @@ if __name__ == "__main__":
     parser.add_argument("--L", type=int, default=16)
     parser.add_argument("--W", type=int, default=512)
     parser.add_argument("--H", type=int, default=512)
+    parser.add_argument("--offload", type=str, default='GPU')
     print('attempting to parse arguments 2')
     args = parser.parse_args()
     print('reached main function call')
