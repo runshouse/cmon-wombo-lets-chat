@@ -129,10 +129,12 @@ def main(args):
                     if is_lora:
                         pipeline = convert_lora(pipeline, state_dict, alpha=model_config.lora_alpha)
 
-            # if args.offload == 'GPU':
-            #     # pipeline.to("cuda")
-            # else:
-                # pipeline.enable_sequential_cpu_offload()
+
+            if args.offload == 'cpu':
+                pipeline.enable_sequential_cpu_offload()
+            else:
+                pipeline.to("cuda")
+                
             ### <<< create validation pipeline <<< ###
 
             prompts = model_config.prompt
