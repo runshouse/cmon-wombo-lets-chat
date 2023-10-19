@@ -521,7 +521,8 @@ class AnimationPipeline(DiffusionPipeline):
                 cpu,  # using cpu to store latents allows generated frame amount not to be limited by vram but by ram
                 generator,
                 latents,
-                init_image_strength
+                init_image_strength,
+                offload: str = "cuda", # Add offload as an argument with a default value
             )
         except Exception as e:
             print(f"Error: {e}")
@@ -557,7 +558,7 @@ class AnimationPipeline(DiffusionPipeline):
                         # with torch.autocast('cuda', enabled=fp16, dtype=torch.float16):
                         with torch.autocast(offload, enabled=fp16, dtype=torch.float16):
                             pred = self.unet(latent_model_input, t, encoder_hidden_states=text_embeddings)
-                        noise_pred[:, :, seq] += pred.sample.to(dtype=latents_dtype, device=cpu)
+                        noise_pred[:, :, seq] += pred.sample.to(dtype=latents_dtype, device=offload)
                         counter[:, :, seq] += 1
                         progress_bar.update()
 
