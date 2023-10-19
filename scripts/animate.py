@@ -80,11 +80,6 @@ def main(args):
             print('Made it to line 68')
             if is_xformers_available(): unet.enable_xformers_memory_efficient_attention()
 
-            if args.offload == 'cpu':
-                pipeline.enable_sequential_cpu_offload()
-            else:
-                pipeline.to("cuda")
-
             print("Using ", args.offload)
             
             pipeline = AnimationPipeline(
@@ -136,12 +131,11 @@ def main(args):
                     if is_lora:
                         pipeline = convert_lora(pipeline, state_dict, alpha=model_config.lora_alpha)
 
+            if args.offload == 'cpu':
+                pipeline.enable_sequential_cpu_offload()
+            else:
+                pipeline.to("cuda")
 
-
-
-
-
-            
             
             ### <<< create validation pipeline <<< ###
 
@@ -168,23 +162,30 @@ def main(args):
                 print(f"current seed: {torch.initial_seed()}")
                 print(f"sampling {prompt} ...")
                 print('Made it to line 164')
-                sample = pipeline(
-                    prompt,
-                    init_image=model_config.init_image,
-                    negative_prompt=n_prompt,
-                    num_inference_steps=model_config.steps,
-                    guidance_scale=model_config.guidance_scale,
-                    width=args.W,
-                    height=args.H,
-                    video_length=args.L,
-                    temporal_context=args.context_length,
-                    strides=args.context_stride + 1,
-                    overlap=args.context_overlap,
-                    fp16=not args.fp32,
-                    init_image_strength=args.init_strength
-                ).videos
-                samples.append(sample)
-                print('Made it to line 181')
+                try:
+                    sample = pipeline(
+                        prompt,
+                        init_image=model_config.init_image,
+                        negative_prompt=n_prompt,
+                        num_inference_steps=model_config.steps,
+                        guidance_scale=model_config.guidance_scale,
+                        width=args.W,
+                        height=args.H,
+                        video_length=args.L,
+                        temporal_context=args.context_length,
+                        strides=args.context_stride + 1,
+                        overlap=args.context_overlap,
+                        fp16=not args.fp32,
+                        init_image_strength=args.init_strength
+                    ).videos
+                    print('Made it to line 181')
+                    samples.append(sample)
+                    
+                except Exception as e:
+                    print(f"Error processing model {model_idx} with config {config_key}: {e}")
+                    # Add any specific exception handling here if needed
+                
+                print('Made it to line 188')
                 prompt = "-".join((prompt.replace("/", "").split(" ")[:10]))
                 prompt = re.sub(r'[^\w\s-]', '', prompt)[:16]
 
