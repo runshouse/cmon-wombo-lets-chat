@@ -63,6 +63,7 @@ class AnimationPipeline(DiffusionPipeline):
             ],
             scan_inversions: bool = True,
             init_image_strength = 0.5,
+            offload: str = "cuda" # Add offload as an argument with a default value
     ):
         super().__init__()
         # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
