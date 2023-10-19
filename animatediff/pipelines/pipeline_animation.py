@@ -537,6 +537,7 @@ class AnimationPipeline(DiffusionPipeline):
         
         # Denoising loop
         num_warmup_steps = len(timesteps) - num_inference_steps * self.scheduler.order
+        print("made it to 540")
         try:
             with self.progress_bar(total=total) as progress_bar:
                 for i, t in enumerate(timesteps):
@@ -551,7 +552,8 @@ class AnimationPipeline(DiffusionPipeline):
                         latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
 
                         # predict the noise residual
-                        with torch.autocast('cuda', enabled=fp16, dtype=torch.float16):
+                        # with torch.autocast('cuda', enabled=fp16, dtype=torch.float16):
+                        with torch.autocast(offload, enabled=fp16, dtype=torch.float16):
                             pred = self.unet(latent_model_input, t, encoder_hidden_states=text_embeddings)
                         noise_pred[:, :, seq] += pred.sample.to(dtype=latents_dtype, device=cpu)
                         counter[:, :, seq] += 1
