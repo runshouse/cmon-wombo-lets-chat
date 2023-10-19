@@ -80,6 +80,13 @@ def main(args):
             print('Made it to line 68')
             if is_xformers_available(): unet.enable_xformers_memory_efficient_attention()
 
+            if args.offload == 'cpu':
+                pipeline.enable_sequential_cpu_offload()
+            else:
+                pipeline.to("cuda")
+
+            print("Using ", args.offload)
+            
             pipeline = AnimationPipeline(
                 vae=vae, text_encoder=text_encoder, tokenizer=tokenizer, unet=unet,
                 scheduler=DDIMScheduler(**OmegaConf.to_container(inference_config.noise_scheduler_kwargs)),
@@ -130,12 +137,11 @@ def main(args):
                         pipeline = convert_lora(pipeline, state_dict, alpha=model_config.lora_alpha)
 
 
-            if args.offload == 'cpu':
-                pipeline.enable_sequential_cpu_offload()
-            else:
-                pipeline.to("cuda")
 
-            print("Using ", args.offload)
+
+
+
+            
             
             ### <<< create validation pipeline <<< ###
 
