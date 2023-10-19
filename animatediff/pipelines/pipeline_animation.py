@@ -469,6 +469,7 @@ class AnimationPipeline(DiffusionPipeline):
             seq_policy=overlap_policy.uniform,
             fp16=True,
             init_image_strength: float = 0.5,
+            offload: str = "cuda", # Add offload as an argument with a default value
             **kwargs,
     ):
         print("made it into the call")
