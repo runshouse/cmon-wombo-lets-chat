@@ -561,6 +561,12 @@ class AnimationPipeline(DiffusionPipeline):
                         print("made it to 558")
                         # predict the noise residual
                         # with torch.autocast('cuda', enabled=fp16, dtype=torch.float16):
+                        import logging
+
+                        # Set the logging level to the lowest (DEBUG)
+                        logging.basicConfig(level=logging.DEBUG)
+                        
+                        # Your existing code here
                         with torch.autocast(offload, enabled=fp16, dtype=torch.float16):
                             pred = self.unet(latent_model_input, t, encoder_hidden_states=text_embeddings)
                             print("made it to 563")
