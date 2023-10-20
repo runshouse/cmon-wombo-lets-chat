@@ -522,7 +522,6 @@ class AnimationPipeline(DiffusionPipeline):
                 generator,
                 latents,
                 init_image_strength,
-                offload: str = "cuda" # Add offload as an argument with a default value
             )
         except Exception as e:
             print(f"Error: {e}")
