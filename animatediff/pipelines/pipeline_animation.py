@@ -546,26 +546,32 @@ class AnimationPipeline(DiffusionPipeline):
                     
                     noise_pred = torch.zeros((latents.shape[0] * (2 if do_classifier_free_guidance else 1),
                                               *latents.shape[1:]), device=latents.device, dtype=latents_dtype)
+                    print("made it to 549")
                     counter = torch.zeros((1, 1, latents.shape[2], 1, 1), device=latents.device, dtype=latents_dtype)
+                    print("made it to 551")
                     for seq in seq_policy(i, num_inference_steps, latents.shape[2], temporal_context, strides, overlap):
                         # expand the latents if we are doing classifier free guidance
                         latent_model_input = latents[:, :, seq].to(device) \
                             .repeat(2 if do_classifier_free_guidance else 1, 1, 1, 1, 1)
+                        print("made it to 556")
                         latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
-
+                        print("made it to 558")
                         # predict the noise residual
                         # with torch.autocast('cuda', enabled=fp16, dtype=torch.float16):
                         with torch.autocast(offload, enabled=fp16, dtype=torch.float16):
                             pred = self.unet(latent_model_input, t, encoder_hidden_states=text_embeddings)
-                        noise_pred[:, :, seq] += pred.sample.to(dtype=latents_dtype, device=offload)
+                            print("made it to 563")
+                        noise_pred[:, :, seq] += pred.sample.to(dtype=latents_dtype, device=offload
+                        print("made it to 564")
                         counter[:, :, seq] += 1
+                        print("made it to 567")
                         progress_bar.update()
 
                     # perform guidance
                     if do_classifier_free_guidance:
                         noise_pred_uncond, noise_pred_text = (noise_pred / counter).chunk(2)
                         noise_pred = noise_pred_uncond + guidance_scale * (noise_pred_text - noise_pred_uncond)
-
+                    print("made it to 574")
                     # compute the previous noisy sample x_t -> x_t-1
                     latents = self.scheduler.step(noise_pred, t, latents, **extra_step_kwargs).prev_sample
 
