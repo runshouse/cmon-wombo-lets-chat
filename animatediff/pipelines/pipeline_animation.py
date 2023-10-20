@@ -561,7 +561,7 @@ class AnimationPipeline(DiffusionPipeline):
                         with torch.autocast(offload, enabled=fp16, dtype=torch.float16):
                             pred = self.unet(latent_model_input, t, encoder_hidden_states=text_embeddings)
                             print("made it to 563")
-                        noise_pred[:, :, seq] += pred.sample.to(dtype=latents_dtype, device=offload
+                        noise_pred[:, :, seq] += pred.sample.to(dtype=latents_dtype, device=offload)
                         print("made it to 564")
                         counter[:, :, seq] += 1
                         print("made it to 567")
