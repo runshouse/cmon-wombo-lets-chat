@@ -544,8 +544,11 @@ class AnimationPipeline(DiffusionPipeline):
             with self.progress_bar(total=total) as progress_bar:
                 for i, t in enumerate(timesteps):
                     
+                    # noise_pred = torch.zeros((latents.shape[0] * (2 if do_classifier_free_guidance else 1),
+                    #                           *latents.shape[1:]), device=latents.device, dtype=latents_dtype)
                     noise_pred = torch.zeros((latents.shape[0] * (2 if do_classifier_free_guidance else 1),
-                                              *latents.shape[1:]), device=latents.device, dtype=latents_dtype)
+                                              *latents.shape[1:]), device=offload, dtype=latents_dtype)
+                    
                     print("made it to 549")
                     counter = torch.zeros((1, 1, latents.shape[2], 1, 1), device=latents.device, dtype=latents_dtype)
                     print("made it to 551")
