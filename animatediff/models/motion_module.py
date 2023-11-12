@@ -7,6 +7,8 @@ import torch.nn.functional as F
 from torch import nn
 import torchvision
 
+from modules import sd_hijack #Edited
+
 from diffusers.configuration_utils import ConfigMixin, register_to_config
 from diffusers.modeling_utils import ModelMixin
 from diffusers.utils import BaseOutput
@@ -309,8 +311,8 @@ class VersatileAttention(CrossAttention):
                 attention_mask = attention_mask.repeat_interleave(self.heads, dim=0)
 
         # attention, what we cannot get enough of
-        if self._use_memory_efficient_attention_xformers:
-            hidden_states = self._memory_efficient_attention_xformers(query, key, value, attention_mask)
+        if sd_hijack.current_optimizer is not None and sd_hijack.current_optimizer.name in ["xformers", "sdp", "sdp-no-mem", "sub-quadratic"]:
+            hidden_states = self._memory_efficient_attention(query, key, value, attention_mask, sd_hijack.current_optimizer.name)
             # Some versions of xformers return output in fp32, cast it back to the dtype of the input
             hidden_states = hidden_states.to(query.dtype)
         else:
