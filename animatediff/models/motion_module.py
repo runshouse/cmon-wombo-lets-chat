@@ -7,6 +7,9 @@ import torch.nn.functional as F
 from torch import nn
 import torchvision
 
+import sys
+sys.path.append("/content/stable-diffusion-webui")
+
 from modules import sd_hijack #Edited
 
 from diffusers.configuration_utils import ConfigMixin, register_to_config
