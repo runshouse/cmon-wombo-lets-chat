@@ -3,7 +3,7 @@ import contextlib
 from functools import lru_cache
 
 import torch
-from modules import errors, shared
+from animatediff.modules import errors, shared
 
 if sys.platform == "darwin":
     from modules import mac_specific
