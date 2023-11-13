@@ -9,7 +9,7 @@ import torchvision
 
 import sys
 
-from animatediff.models import sd_hijack #Edited
+from animatediff.modules import sd_hijack #Edited
 
 from diffusers.configuration_utils import ConfigMixin, register_to_config
 from diffusers.modeling_utils import ModelMixin
