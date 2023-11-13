@@ -2,10 +2,10 @@ import torch
 from torch.nn.functional import silu
 from types import MethodType
 
-from modules import devices, sd_hijack_optimizations, shared, script_callbacks, errors, sd_unet
-from modules.hypernetworks import hypernetwork
-from modules.shared import cmd_opts
-from modules import sd_hijack_clip, sd_hijack_open_clip, sd_hijack_unet, sd_hijack_xlmr, xlmr
+from animatediff.modules import devices, sd_hijack_optimizations, shared, script_callbacks, errors, sd_unet
+from animatediff.modules.hypernetworks import hypernetwork
+from animatediff.modules.shared import cmd_opts
+from animatediff.modules import sd_hijack_clip, sd_hijack_open_clip, sd_hijack_unet, sd_hijack_xlmr, xlmr
 
 import ldm.modules.attention
 import ldm.modules.diffusionmodules.model
