@@ -189,10 +189,10 @@ def main(args):
                 prompt = "-".join((prompt.replace("/", "").split(" ")[:10]))
                 prompt = re.sub(r'[^\w\s-]', '', prompt)[:16]
 
-                save_videos_grid(sample, f"{savedir}/{sample_idx}-{time_str}.gif")
+                save_videos_grid(sample, f"{savedir}/{sample_idx}-{prompt}-{time_str}.gif")
                 if args.cloudsave:
-                    save_videos_grid(sample, f"/content/outputs/{time_str}/{sample_idx}-{time_str}.gif")
-                print(f"saving original scale outputs to {savedir}/{sample_idx}-{time_str}.gif")
+                    save_videos_grid(sample, f"/content/outputs/{time_str}/{sample_idx}-{prompt}-{time_str}.gif")
+                print(f"saving original scale outputs to {savedir}/{sample_idx}-{prompt}-{time_str}.gif")
                 print('Made it to line 189')
                 sample_idx += 1
 
