@@ -3,18 +3,39 @@ channels:
   - pytorch
   - xformers
 dependencies:
-  - python=3.10
-  - pytorch==1.12.1
-  - torchvision==0.13.1
-  - torchaudio==0.12.1
-  - cudatoolkit=11.3
+  - python
+  - pytorch
+  - torchvision
+  - torchaudio
+  - cudatoolkit
   - xformers
   - pip
   - pip:
-    - diffusers[torch]==0.11.1
-    - transformers==4.25.1
-    - imageio==2.27.0
+    - diffusers[torch]
+    - transformers
+    - imageio
     - gdown
     - einops
     - omegaconf
     - safetensors
+
+# name: animatediff
+# channels:
+#   - pytorch
+#   - xformers
+# dependencies:
+#   - python=3.10
+#   - pytorch==1.12.1
+#   - torchvision==0.13.1
+#   - torchaudio==0.12.1
+#   - cudatoolkit=11.3
+#   - xformers
+#   - pip
+#   - pip:
+#     - diffusers[torch]==0.11.1
+#     - transformers==4.25.1
+#     - imageio==2.27.0
+#     - gdown
+#     - einops
+#     - omegaconf
+#     - safetensors
