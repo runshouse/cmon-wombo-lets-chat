@@ -66,8 +66,8 @@ class AnimationPipeline(DiffusionPipeline):
             offload: str = "cuda" # Add offload as an argument with a default value
     ):
         super().__init__()
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        # device = offload
+        # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        device = offload
         if hasattr(scheduler.config, "steps_offset") and scheduler.config.steps_offset != 1:
             deprecation_message = (
                 f"The configuration file of this scheduler: {scheduler} is outdated. `steps_offset`"
