@@ -90,7 +90,36 @@ def main(args):
 
             # 1. unet ckpt
             # 1.1 motion module
-            motion_module_state_dict = torch.load(motion_module, map_location=args.offload)
+            # motion_module_state_dict = torch.load(motion_module, map_location=args.offload)
+            # if "global_step" in motion_module_state_dict: func_args.update(
+            #     {"global_step": motion_module_state_dict["global_step"]})
+            # missing, unexpected = pipeline.unet.load_state_dict(motion_module_state_dict, strict=False)
+            # assert len(unexpected) == 0
+
+            # # 1.2 T2I
+            # if model_config.path != "":
+            #     if model_config.path.endswith(".ckpt"):
+            #         state_dict = torch.load(model_config.path)
+            #         pipeline.unet.load_state_dict(state_dict)
+
+            #     elif model_config.path.endswith(".safetensors"):
+            #         state_dict = {}
+            #         with safe_open(model_config.path, framework="pt", device=args.offload) as f:
+            #             for key in f.keys():
+            #                 state_dict[key] = f.get_tensor(key)
+
+            #         is_lora = all("lora" in k for k in state_dict.keys())
+            #         if not is_lora:
+            #             base_state_dict = state_dict
+            #         else:
+            #             base_state_dict = {}
+            #             with safe_open(model_config.base, framework="pt", device=args.offload) as f:
+            #                 for key in f.keys():
+            #                     base_state_dict[key] = f.get_tensor(key)
+
+            # 1. unet ckpt
+            # 1.1 motion module
+            motion_module_state_dict = torch.load(motion_module, map_location="cpu")
             if "global_step" in motion_module_state_dict: func_args.update(
                 {"global_step": motion_module_state_dict["global_step"]})
             missing, unexpected = pipeline.unet.load_state_dict(motion_module_state_dict, strict=False)
@@ -104,7 +133,7 @@ def main(args):
 
                 elif model_config.path.endswith(".safetensors"):
                     state_dict = {}
-                    with safe_open(model_config.path, framework="pt", device=args.offload) as f:
+                    with safe_open(model_config.path, framework="pt", device="cpu") as f:
                         for key in f.keys():
                             state_dict[key] = f.get_tensor(key)
 
@@ -113,7 +142,7 @@ def main(args):
                         base_state_dict = state_dict
                     else:
                         base_state_dict = {}
-                        with safe_open(model_config.base, framework="pt", device=args.offload) as f:
+                        with safe_open(model_config.base, framework="pt", device="cpu") as f:
                             for key in f.keys():
                                 base_state_dict[key] = f.get_tensor(key)
 
