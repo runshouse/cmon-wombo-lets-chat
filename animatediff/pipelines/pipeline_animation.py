@@ -583,12 +583,29 @@ class AnimationPipeline(DiffusionPipeline):
                     # if do_classifier_free_guidance:
                     #     noise_pred_uncond, noise_pred_text = (noise_pred / counter).chunk(2)
                     #     noise_pred = noise_pred_uncond + guidance_scale * (noise_pred_text - noise_pred_uncond)
+                    # if do_classifier_free_guidance:
+                    #     # Move tensors to the same device
+                    #     noise_pred, counter = noise_pred.to(device), counter.to(device)
+                        
+                    #     # Split the tensor on the same device
+                    #     noise_pred_uncond, noise_pred_text = (noise_pred / counter).chunk(2)
+                    
+                    #     # Perform the operation on the same device
+                    #     noise_pred = noise_pred_uncond + guidance_scale * (noise_pred_text - noise_pred_uncond)
                     if do_classifier_free_guidance:
                         # Move tensors to the same device
                         noise_pred, counter = noise_pred.to(device), counter.to(device)
                         
+                        # Print device information
+                        print("noise_pred device:", noise_pred.device)
+                        print("counter device:", counter.device)
+                    
                         # Split the tensor on the same device
                         noise_pred_uncond, noise_pred_text = (noise_pred / counter).chunk(2)
+                    
+                        # Print device information
+                        print("noise_pred_uncond device:", noise_pred_uncond.device)
+                        print("noise_pred_text device:", noise_pred_text.device)
                     
                         # Perform the operation on the same device
                         noise_pred = noise_pred_uncond + guidance_scale * (noise_pred_text - noise_pred_uncond)
