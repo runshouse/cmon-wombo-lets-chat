@@ -90,7 +90,7 @@ def main(args):
 
             # enable memory savings
             pipeline.enable_vae_slicing()
-            pipeline.enable_model_cpu_offload()
+            # pipeline.enable_model_cpu_offload()
             pipeline.enable_xformers_memory_efficient_attention()
 
             
