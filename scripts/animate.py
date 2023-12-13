@@ -88,6 +88,12 @@ def main(args):
                 scan_inversions=not args.disable_inversions, init_image_strength=args.init_strength
             ).to(args.offload)
 
+            # enable memory savings
+            pipe.enable_vae_slicing()
+            pipe.enable_model_cpu_offload()
+            pipe.enable_xformers_memory_efficient_attention()
+
+            
             # 1. unet ckpt
             # 1.1 motion module
             motion_module_state_dict = torch.load(motion_module, map_location=args.offload)
