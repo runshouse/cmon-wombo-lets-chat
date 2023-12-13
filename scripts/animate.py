@@ -89,9 +89,9 @@ def main(args):
             ).to(args.offload)
 
             # enable memory savings
-            pipe.enable_vae_slicing()
-            pipe.enable_model_cpu_offload()
-            pipe.enable_xformers_memory_efficient_attention()
+            pipeline.enable_vae_slicing()
+            pipeline.enable_model_cpu_offload()
+            pipeline.enable_xformers_memory_efficient_attention()
 
             
             # 1. unet ckpt
