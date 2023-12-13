@@ -611,13 +611,24 @@ class AnimationPipeline(DiffusionPipeline):
                         noise_pred = noise_pred_uncond + guidance_scale * (noise_pred_text - noise_pred_uncond)
 
                     print("made it to 574")
-                    # compute the previous noisy sample x_t -> x_t-1
-                    latents = self.scheduler.step(noise_pred, t, latents, **extra_step_kwargs).prev_sample
+                    # # compute the previous noisy sample x_t -> x_t-1
+                    # latents = self.scheduler.step(noise_pred, t, latents, **extra_step_kwargs).prev_sample
 
+                    # # call the callback, if provided
+                    # if i == len(timesteps) - 1 or ((i + 1) > num_warmup_steps and (i + 1) % self.scheduler.order == 0):
+                    #     if callback is not None and i % callback_steps == 0:
+                    #         callback(i, t, latents)
+                            
+                    # compute the previous noisy sample x_t -> x_t-1
+                    step_result = self.scheduler.step(noise_pred, t, latents, **extra_step_kwargs)
+                    latents = step_result.prev_sample.to(device)  # Make sure it's on the same device as noise_pred
+                    
                     # call the callback, if provided
                     if i == len(timesteps) - 1 or ((i + 1) > num_warmup_steps and (i + 1) % self.scheduler.order == 0):
                         if callback is not None and i % callback_steps == 0:
                             callback(i, t, latents)
+                            
+        
         except Exception as e:
             print(f"Error: {e}")
 
